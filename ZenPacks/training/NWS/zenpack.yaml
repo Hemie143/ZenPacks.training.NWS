@@ -37,5 +37,12 @@ classes:
 class_relationships:
   - NwsDevice 1:MC NwsStation
 
-
+device_classes:
+  /NWS:
+    zProperties:
+      zPythonClass: ZenPacks.training.NWS.NwsDevice
+      zPingMonitorIgnore: true
+      zSnmpMonitorIgnore: true
+      zCollectorPlugins:
+        - NWS.Stations
 
