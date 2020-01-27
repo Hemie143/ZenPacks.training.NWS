@@ -1,0 +1,41 @@
+name: ZenPacks.training.NWS
+
+zProperties:
+  DEFAULTS:
+    category: National Weather Service
+  zNwsStates:
+    type: lines
+    default:
+      - TX
+      - OK
+
+classes:
+  NwsDevice:
+    base: [zenpacklib.Device]
+    label: National Weather Service API
+
+  NwsDevice:
+    base: [zenpacklib.Component]
+    label: Station
+
+    properties:
+      country_code:
+        label: Country Code
+      timezone:
+        label: Time Zone
+      nws_zone:
+        label: Zone
+      county:
+        label: County
+      latitude:
+        label: Latitude
+        grid_display: False
+      longitude:
+        label: Longitude
+        grid_display: False
+
+class_relationships:
+  - NwsDevice 1:MC NwsStation
+
+
+
