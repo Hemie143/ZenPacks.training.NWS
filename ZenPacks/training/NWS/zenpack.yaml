@@ -14,7 +14,7 @@ classes:
     base: [zenpacklib.Device]
     label: National Weather Service API
 
-  NwsDevice:
+  NwsStation:
     base: [zenpacklib.Component]
     label: Station
 
@@ -45,4 +45,15 @@ device_classes:
       zSnmpMonitorIgnore: true
       zCollectorPlugins:
         - NWS.Stations
+
+    templates:
+      Station:
+        description: Weather monitoring using the NWS API.
+        targetPythonClass: ZenPacks.training.NWS.NwsStation
+
+        datasources:
+          alerts:
+            type: Python
+            plugin_classname: ZenPacks.training.NWS.dsplugins.Alerts
+            cycletime: "600"
 

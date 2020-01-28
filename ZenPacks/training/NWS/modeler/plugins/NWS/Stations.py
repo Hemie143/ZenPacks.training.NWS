@@ -16,7 +16,7 @@ class Stations(PythonPlugin):
 
     """NWS Stations modeler plugin."""
 
-    relname = nwsStations
+    relname = 'nwsStations'
     modname = 'ZenPacks.training.NWS.NwsStation'
 
     requiredProperties = (
@@ -56,7 +56,7 @@ class Stations(PythonPlugin):
                     for result in response.get('features')
                 ])
         results = yield DeferredList(requests, consumeErrors=True)
-        returnValue(responses, results)
+        returnValue((responses, results))
 
     def process(self, device, results, log):
         """Process results. Return iterable of datamaps or None."""
@@ -85,4 +85,5 @@ class Stations(PythonPlugin):
                     'county': countyLink.split('/')[-1],
                     'nws_zone': zoneLink.split('/')[-1],
                 }))
+        log.debug('AAA rm: {}'.format(rm))
         return rm

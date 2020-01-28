@@ -3,12 +3,12 @@
 # or saved.  Do not modify them directly here.
 # NB: PACKAGES is deprecated
 NAME = "ZenPacks.training.NWS"
-VERSION = "1.0.0dev"
-AUTHOR = "Your Name Here"
-LICENSE = ""
+VERSION = "1.0.0"
+AUTHOR = "Laurent Hemeryck"
+LICENSE = "GPLv2"
 NAMESPACE_PACKAGES = ['ZenPacks', 'ZenPacks.training']
 PACKAGES = ['ZenPacks', 'ZenPacks.training', 'ZenPacks.training.NWS']
-INSTALL_REQUIRES = ['ZenPacks.zenoss.ZenPackLib']
+INSTALL_REQUIRES = ['ZenPacks.zenoss.ZenPackLib', 'ZenPacks.zenoss.PythonCollector']
 COMPAT_ZENOSS_VERS = ""
 PREV_ZENPACK_NAME = ""
 # STOP_REPLACEMENTS
