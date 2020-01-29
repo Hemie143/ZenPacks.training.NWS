@@ -80,3 +80,50 @@ class Alerts(PythonDataSourcePlugin):
                 })
         returnValue(data)
 
+
+class Conditions(PythonDataSourcePlugin):
+
+    """National Weather Service conditions datasource plugin"""
+
+    @classmethod
+    def config_key(cls, datasource, context):
+        return context.device().id, datasource.getCycleTime(context), context.id, 'nws-conditions'
+
+    @classmethod
+    def params(cls, datasource, context):
+        return {
+            'station_id': context.id,
+            'station_name': context.title
+        }
+
+    @inlineCallbacks
+    def collect(self, config):
+        data = self.new_data()
+
+        for datasource in config.datasources:
+            try:
+                response = yield getPage(
+                    'https://api.weather.gov/stations/{station_id}/observations/latest'
+                    .format(station_id=datasource.params['station_id'])
+                )
+                response = json.loads(response)
+            except Exception:
+                LOG.exception('%s: failed to get conditions data for %s',
+                              config.id, datasource.params.get('station_name'))
+                continue
+
+            current_observation = response.get('properties')
+            for datapoint_id in (x.id for x in datasource.points):
+                if datapoint_id not in current_observation:
+                    continue
+                try:
+                    value = current_observation[datapoint_id]['value']
+                    if isinstance(value, basestring):
+                        value = value.strip(' %')
+                    value = float(value)
+                except (TypeError, ValueError):
+                    # Sometimes values are NA or not available
+                    continue
+                dpname = '_'.join((datasource.datasource, datapoint_id))
+                data['values'][datasource.component][dpname] = (value, 'N')
+        returnValue(data)

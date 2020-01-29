@@ -57,3 +57,91 @@ device_classes:
             plugin_classname: ZenPacks.training.NWS.dsplugins.Alerts
             cycletime: "600"
 
+          conditions:
+            type: Python
+            plugin_classname: ZenPacks.training.NWS.dsplugins.Conditions
+            cycletime: "600"
+
+            datapoints:
+              temperature: GAUGE
+              dewpoint: GAUGE
+              windSpeed: GAUGE
+              windGust: GAUGE
+              barometricPressure: GAUGE
+              visibility: GAUGE
+              relativeHumidity: GAUGE
+              heatIndex: GAUGE
+              windChill: GAUGE
+              barometricPressure: GAUGE
+              precipitationLastHour: GAUGE
+
+        graphs:
+          Temperatures:
+            units: "degrees C."
+
+            graphpoints:
+              Temperature:
+                dpName: conditions_temperature
+                format: "%7.2lf"
+
+              Heat Index:
+                dpName: conditions_heatIndex
+                format: "%7.2lf"
+
+              Wind Chill:
+                dpName: conditions_windChill
+                format: "%7.2lf"
+
+              Dewpoint:
+                dpName: conditions_dewpoint
+                format: "%7.2lf"
+
+          Relative Humidity:
+            units: percent
+            miny: 0
+            maxy: 100
+
+            graphpoints:
+              Relative Humidity:
+                dpName: conditions_relativeHumidity
+                format: "%7.2lf%%"
+
+          Pressure:
+            units: pascals
+            miny: 0
+
+            graphpoints:
+              Pressure:
+                dpName: conditions_barometricPressure
+                format: "%7.0lf"
+
+          Precipitation:
+            units: meters
+            miny: 0
+
+            graphpoints:
+              1 Hour:
+                dpName: conditions_precipitationLastHour
+                format: "%7.2lf"
+
+          Wind Speed:
+            units: mps
+            miny: 0
+
+            graphpoints:
+              Sustained:
+                dpName: conditions_windSpeed
+                format: "%7.2lf"
+
+              Gust:
+                dpName: conditions_windGust
+                format: "%7.2lf"
+
+          Visibility:
+            units: meters
+            miny: 0
+
+            graphpoints:
+              Visibility:
+                dpName: conditions_visibility
+                format: "%7.2lf"
