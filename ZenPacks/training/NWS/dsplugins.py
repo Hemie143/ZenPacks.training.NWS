@@ -15,6 +15,7 @@ from twisted.web.client import getPage
 
 # PythonCollector Imports
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource import PythonDataSourcePlugin
+from Products.DataCollector.plugins.DataMaps import ObjectMap
 
 LOG = logging.getLogger('zen.NWS')
 
@@ -126,4 +127,13 @@ class Conditions(PythonDataSourcePlugin):
                     continue
                 dpname = '_'.join((datasource.datasource, datapoint_id))
                 data['values'][datasource.component][dpname] = (value, 'N')
+
+        data['maps'].append(
+            ObjectMap({
+                'relname': 'nwsStations',
+                'modname': 'ZenPacks.training.NWS.NwsStation',
+                'id': datasource.component,
+                'weather': current_observation['textDescription'],
+            })
+        )
         returnValue(data)

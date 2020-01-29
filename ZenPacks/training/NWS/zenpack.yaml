@@ -23,6 +23,8 @@ classes:
         label: Country Code
       timezone:
         label: Time Zone
+      weather:
+        label: Current Conditions
       nws_zone:
         label: Zone
       county:
