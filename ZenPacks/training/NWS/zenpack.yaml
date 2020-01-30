@@ -36,8 +36,30 @@ classes:
         label: Longitude
         grid_display: False
 
+  NwsStationNew:
+    base: [zenpacklib.Component]
+    label: NewStation
+
+    properties:
+      country_code:
+        label: Country Code
+      timezone:
+        label: Time Zone
+      weather:
+        label: Current Conditions
+      nws_zone:
+        label: Zone
+      county:
+        label: County
+      latitude:
+        label: Latitude
+        grid_display: False
+      longitude:
+        label: Longitude
+        grid_display: False
+
 class_relationships:
-  - NwsDevice 1:MC NwsStation
+  - NwsDevice 1:MC NwsStationNew
 
 device_classes:
   /NWS:
@@ -46,22 +68,22 @@ device_classes:
       zPingMonitorIgnore: true
       zSnmpMonitorIgnore: true
       zCollectorPlugins:
-        - NWS.Stations
+        - NWS.StationsNew
 
     templates:
-      Station:
+      NewStation:
         description: Weather monitoring using the NWS API.
-        targetPythonClass: ZenPacks.training.NWS.NwsStation
+        targetPythonClass: ZenPacks.training.NWS.NwsStationNew
 
         datasources:
           alerts:
             type: Python
-            plugin_classname: ZenPacks.training.NWS.dsplugins.Alerts
+            plugin_classname: ZenPacks.training.NWS.dsplugins.AlertsNew
             cycletime: "600"
 
           conditions:
             type: Python
-            plugin_classname: ZenPacks.training.NWS.dsplugins.Conditions
+            plugin_classname: ZenPacks.training.NWS.dsplugins.ConditionsNew
             cycletime: "600"
 
             datapoints:

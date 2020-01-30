@@ -12,6 +12,9 @@ from dateutil import parser
 # Twisted Imports
 from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.web.client import getPage
+from twisted.web.client import Agent, readBody
+from twisted.internet import reactor
+from twisted.web.http_headers import Headers
 
 # PythonCollector Imports
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource import PythonDataSourcePlugin
@@ -20,7 +23,7 @@ from Products.DataCollector.plugins.DataMaps import ObjectMap
 LOG = logging.getLogger('zen.NWS')
 
 
-class Alerts(PythonDataSourcePlugin):
+class AlertsNew(PythonDataSourcePlugin):
     """NWS alerts data source plugin."""
 
     @classmethod
@@ -38,13 +41,16 @@ class Alerts(PythonDataSourcePlugin):
     def collect(self, config):
         data = self.new_data()
 
+        agent = Agent(reactor)
+        headers = {"User-Agent": ["Mozilla/3.0Gold"],
+                   }
+
         for datasource in config.datasources:
             try:
-                response = yield getPage(
-                    'https://api.weather.gov/alerts/active?zone={query}'
-                    .format(query=datasource.params['county'])
-                )
-                response = json.loads(response)
+                url = 'https://api.weather.gov/alerts/active?zone={query}'.format(query=datasource.params['county'])
+                response = yield agent.request('GET', url, Headers(headers))
+                response_body = yield readBody(response)
+                response_body = json.loads(response_body)
             except Exception:
                 LOG.exception(
                     '%s: failed to get alerts data for %s',
@@ -53,7 +59,7 @@ class Alerts(PythonDataSourcePlugin):
                 )
                 continue
 
-            for rawAlert in response.get('features'):
+            for rawAlert in response_body.get('features'):
                 alert = rawAlert['properties']
                 severity = None
                 expires = parser.parse(alert['expires'])
@@ -82,7 +88,7 @@ class Alerts(PythonDataSourcePlugin):
         returnValue(data)
 
 
-class Conditions(PythonDataSourcePlugin):
+class ConditionsNew(PythonDataSourcePlugin):
 
     """National Weather Service conditions datasource plugin"""
 
@@ -101,19 +107,24 @@ class Conditions(PythonDataSourcePlugin):
     def collect(self, config):
         data = self.new_data()
 
+        agent = Agent(reactor)
+        headers = {"User-Agent": ["Mozilla/3.0Gold"],
+                   }
+
+
         for datasource in config.datasources:
             try:
-                response = yield getPage(
-                    'https://api.weather.gov/stations/{station_id}/observations/latest'
-                    .format(station_id=datasource.params['station_id'])
-                )
-                response = json.loads(response)
+                url = 'https://api.weather.gov/stations/{station_id}/observations/latest'.format(
+                    station_id=datasource.params['station_id'])
+                response = yield agent.request('GET', url, Headers(headers))
+                response_body = yield readBody(response)
+                response_body = json.loads(response_body)
             except Exception:
                 LOG.exception('%s: failed to get conditions data for %s',
                               config.id, datasource.params.get('station_name'))
                 continue
 
-            current_observation = response.get('properties')
+            current_observation = response_body.get('properties')
             for datapoint_id in (x.id for x in datasource.points):
                 if datapoint_id not in current_observation:
                     continue
@@ -130,8 +141,8 @@ class Conditions(PythonDataSourcePlugin):
 
         data['maps'].append(
             ObjectMap({
-                'relname': 'nwsStations',
-                'modname': 'ZenPacks.training.NWS.NwsStation',
+                'relname': 'nwsStationNews',
+                'modname': 'ZenPacks.training.NWS.NwsStationNew',
                 'id': datasource.component,
                 'weather': current_observation['textDescription'],
             })
