@@ -11,7 +11,6 @@ from dateutil import parser
 
 # Twisted Imports
 from twisted.internet.defer import inlineCallbacks, returnValue
-from twisted.web.client import getPage
 from twisted.web.client import Agent, readBody
 from twisted.internet import reactor
 from twisted.web.http_headers import Headers
@@ -23,7 +22,7 @@ from Products.DataCollector.plugins.DataMaps import ObjectMap
 LOG = logging.getLogger('zen.NWS')
 
 
-class AlertsNew(PythonDataSourcePlugin):
+class Alerts(PythonDataSourcePlugin):
     """NWS alerts data source plugin."""
 
     @classmethod
@@ -61,7 +60,7 @@ class AlertsNew(PythonDataSourcePlugin):
 
             for rawAlert in response_body.get('features'):
                 alert = rawAlert['properties']
-                severity = None
+                # severity = None
                 expires = parser.parse(alert['expires'])
                 if datetime.timetuple(expires) <= time.gmtime():
                     severity = 0
@@ -88,7 +87,7 @@ class AlertsNew(PythonDataSourcePlugin):
         returnValue(data)
 
 
-class ConditionsNew(PythonDataSourcePlugin):
+class Conditions(PythonDataSourcePlugin):
 
     """National Weather Service conditions datasource plugin"""
 
@@ -141,8 +140,8 @@ class ConditionsNew(PythonDataSourcePlugin):
 
         data['maps'].append(
             ObjectMap({
-                'relname': 'nwsStationNews',
-                'modname': 'ZenPacks.training.NWS.NwsStationNew',
+                'relname': 'nwsStations',
+                'modname': 'ZenPacks.training.NWS.NwsStation',
                 'id': datasource.component,
                 'weather': current_observation['textDescription'],
             })

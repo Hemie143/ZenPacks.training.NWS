@@ -6,7 +6,9 @@ import urllib
 
 # Twisted Imports
 from twisted.internet.defer import inlineCallbacks, returnValue, DeferredList
-from twisted.web.client import getPage
+from twisted.web.client import Agent, readBody
+from twisted.internet import reactor
+from twisted.web.http_headers import Headers
 
 # Zenoss Imports
 from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
@@ -15,6 +17,7 @@ from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
 class Stations(PythonPlugin):
 
     """NWS Stations modeler plugin."""
+    """Use twisted.web.client.Agent instead of getPage"""
 
     relname = 'nwsStations'
     modname = 'ZenPacks.training.NWS.NwsStation'
@@ -35,27 +38,34 @@ class Stations(PythonPlugin):
             log.error('%s: %s not set.', device.id, 'zNwsStates')
             returnValue(None)
 
-        requests = []
+        deferreds = []
         responses = []
+
+        # TEST: Limit to one state
+        NwsStates = NwsStates[:1]
+
+        agent = Agent(reactor)
+        headers = {"User-Agent": ["Mozilla/3.0Gold"],
+                   }
 
         for NwsState in NwsStates:
             if NwsState:
                 try:
-                    response = yield getPage(
-                        'https://api.weather.gov/stations?state={query}'.format(query=urllib.quote(NwsState)))
-                    response = json.loads(response)
-                    responses.append(response)
+                    url = 'https://api.weather.gov/stations?state={query}'.format(query=urllib.quote(NwsState))
+                    response = yield agent.request('GET', url, Headers(headers))
+                    response_body = yield readBody(response)
+                    response_body = json.loads(response_body)
+                    responses.append(response_body)
                 except Exception, e:
                     log.error('%s: %s', device.id, e)
                     returnValue(None)
-                requests.extend([
-                    getPage(
-                        'https://api.weather.gov/stations/{query}'
-                        .format(query=urllib.quote(result['properties']['stationIdentifier']))
-                    )
-                    for result in response.get('features')
-                ])
-        results = yield DeferredList(requests, consumeErrors=True)
+                for feature in response_body.get('features'):
+                    url = 'https://api.weather.gov/stations/{query}'.format(
+                        query=urllib.quote(feature['properties']['stationIdentifier']))
+                    d = agent.request('GET', url, Headers(headers))
+                    d.addCallback(readBody)
+                    deferreds.append(d)
+        results = yield DeferredList(deferreds, consumeErrors=True)
         returnValue((responses, results))
 
     def process(self, device, results, log):
@@ -64,6 +74,9 @@ class Stations(PythonPlugin):
 
         (generalResults, detailedRawResults) = results
 
+        # TEST: Limit the number of created instances
+        count = 0
+
         detailedResults = {}
         for result in detailedRawResults:
             result = json.loads(result[1])
@@ -71,6 +84,8 @@ class Stations(PythonPlugin):
             detailedResults[id] = result['properties']
         for result in generalResults:
             for stationResult in result.get('features'):
+                if count >= 3:
+                    continue
                 id = self.prepId(stationResult['properties']['stationIdentifier'])
                 zoneLink = detailedResults.get(id, {}).get('forecast', '')
                 countyLink = detailedResults.get(id, {}).get('county', '')
@@ -85,5 +100,6 @@ class Stations(PythonPlugin):
                     'county': countyLink.split('/')[-1],
                     'nws_zone': zoneLink.split('/')[-1],
                 }))
+                count += 1
 
         return rm
